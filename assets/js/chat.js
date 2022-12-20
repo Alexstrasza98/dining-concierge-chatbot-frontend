@@ -1,3 +1,5 @@
+let sessionId = Math.floor(Math.random() * 1000)
+
 var checkout = {};
 
 $(document).ready(function() {
@@ -33,7 +35,8 @@ $(document).ready(function() {
         unstructured: {
           text: message
         }
-      }]
+      }],
+      sessionId: String(sessionId)
     }, {});
   }
 
