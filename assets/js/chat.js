@@ -1,8 +1,6 @@
 // TODO: switch from random number to uuid (can't figure out how to import in JS)
 let sessionId = Math.floor(Math.random() * 1000)
-
 let checkout = {};
-
 let sessionState = {};
 let requestAttributes = {};
 
@@ -47,15 +45,21 @@ $(document).ready(function() {
   }
 
   function insertMessage() {
+    // Capture user input
     msg = $('.message-input').val();
     if ($.trim(msg) == '') {
       return false;
     }
+
+    // Display it into main chat window
     $('<div class="message message-personal">' + msg + '</div>').appendTo($('.mCSB_container')).addClass('new');
     setDate();
+
+    // Clean user input butter
     $('.message-input').val(null);
     updateScrollbar();
 
+    // Call ChatBotApi
     callChatbotApi(msg, sessionState)
       .then((response) => {
         console.log(response);
@@ -68,20 +72,21 @@ $(document).ready(function() {
 
           let messages = data.messages;
 
+          // Analyze messages
           for (let message of messages) {
-            if (message.type === 'unstructured') {
+            if (message.unstructured.contentType === 'PlainText') {
               insertResponseMessage(message.unstructured.text);
-            } else if (message.type === 'structured' && message.structured.type === 'product') {
+            } else if (message.unstructured.contentType === 'ImageResponseCard') {
+
+              // Construct an HTML object for this card
               let html = '';
 
-              insertResponseMessage(message.structured.text);
-
               setTimeout(function() {
-                html = '<img src="' + message.structured.payload.imageUrl + '" witdth="200" height="240" class="thumbnail" /><b>' +
-                  message.structured.payload.name + '<br>$' +
-                  message.structured.payload.price +
-                  '</b><br><a href="#" onclick="' + message.structured.payload.clickAction + '()">' +
-                  message.structured.payload.buttonLabel + '</a>';
+                html = '<div class="card"><img src="' + message.unstructured.text.imageUrl + '"gitclass="card-thumbnail" />'
+                    + '<h2 class="card-title">' + message.unstructured.text.title + '</h2>'
+                    + '<p class="card-text">' + message.unstructured.text.subtitle + '</p></div>'
+                // + '<a href="#" onclick="' + message.structured.payload.clickAction + '()">' + message.structured.payload.buttonLabel + '</a>'
+                ;
                 insertResponseMessage(html);
               }, 1100);
             } else {

@@ -276,6 +276,15 @@ Message Box
   background: #999;
 }
 
+.card {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-thumbnail {
+  height: 120px;
+  width: auto;
+}
 /*--------------------
 Custom Srollbar
 --------------------*/
