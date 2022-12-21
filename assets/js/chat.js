@@ -1,11 +1,14 @@
 let sessionId = Math.floor(Math.random() * 1000)
 
-var checkout = {};
+let checkout = {};
+
+let sessionState = {};
+let requestAttributes = {};
 
 $(document).ready(function() {
-  var $messages = $('.messages-content'),
-    d, h, m,
-    i = 0;
+  let $messages = $('.messages-content'),
+      d, h, m,
+      i = 0;
 
   $(window).load(function() {
     $messages.mCustomScrollbar();
@@ -27,7 +30,8 @@ $(document).ready(function() {
     }
   }
 
-  function callChatbotApi(message) {
+  function callChatbotApi(message, sessionState) {
+    console.log(sessionState)
     // params, body, additionalParams
     return sdk.chatbotPost({}, {
       messages: [{
@@ -36,7 +40,8 @@ $(document).ready(function() {
           text: message
         }
       }],
-      sessionId: String(sessionId)
+      sessionId: String(sessionId),
+      sessionState: sessionState
     }, {});
   }
 
@@ -50,21 +55,23 @@ $(document).ready(function() {
     $('.message-input').val(null);
     updateScrollbar();
 
-    callChatbotApi(msg)
+    callChatbotApi(msg, sessionState)
       .then((response) => {
         console.log(response);
-        var data = response.data;
+        let data = response.data;
+        sessionState = data.sessionState
+        requestAttributes = data.requestAttributes
 
         if (data.messages && data.messages.length > 0) {
           console.log('received ' + data.messages.length + ' messages');
 
-          var messages = data.messages;
+          let messages = data.messages;
 
-          for (var message of messages) {
+          for (let message of messages) {
             if (message.type === 'unstructured') {
               insertResponseMessage(message.unstructured.text);
             } else if (message.type === 'structured' && message.structured.type === 'product') {
-              var html = '';
+              let html = '';
 
               insertResponseMessage(message.structured.text);
 
