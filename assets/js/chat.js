@@ -1,3 +1,4 @@
+// TODO: switch from random number to uuid (can't figure out how to import in JS)
 let sessionId = Math.floor(Math.random() * 1000)
 
 let checkout = {};
