@@ -277,13 +277,19 @@ Message Box
 }
 
 .card {
+  width: 300px;
   display: flex;
   flex-direction: column;
 }
 
 .card-thumbnail {
-  height: 120px;
-  width: auto;
+  height: 200px;
+  width: 300px;
+  text-align: center;
+}
+
+.card h4,p {
+  text-align: left;
 }
 /*--------------------
 Custom Srollbar

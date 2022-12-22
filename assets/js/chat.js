@@ -4,47 +4,71 @@ let checkout = {};
 let sessionState = {};
 let requestAttributes = {};
 
-$(document).ready(function() {
-  let $messages = $('.messages-content'),
-      d, h, m,
-      i = 0;
+let $messages = $('.messages-content'),
+    d, h, m,
+    i = 0;
 
-  $(window).load(function() {
-    $messages.mCustomScrollbar();
-    insertResponseMessage('Hi there, I\'m your personal Concierge. How can I help?');
+$(window).load(function() {
+  $messages.mCustomScrollbar();
+  insertResponseMessage('Hi there, I\'m your personal Concierge. How can I help?');
+});
+
+function updateScrollbar() {
+  $messages.mCustomScrollbar("update").mCustomScrollbar('scrollTo', 'bottom', {
+    scrollInertia: 10,
+    timeout: 0
   });
+}
 
-  function updateScrollbar() {
-    $messages.mCustomScrollbar("update").mCustomScrollbar('scrollTo', 'bottom', {
-      scrollInertia: 10,
-      timeout: 0
-    });
+function setDate() {
+  d = new Date()
+  if (m != d.getMinutes()) {
+    m = d.getMinutes();
+    $('<div class="timestamp">' + d.getHours() + ':' + m + '</div>').appendTo($('.message:last'));
   }
+}
 
-  function setDate() {
-    d = new Date()
-    if (m != d.getMinutes()) {
-      m = d.getMinutes();
-      $('<div class="timestamp">' + d.getHours() + ':' + m + '</div>').appendTo($('.message:last'));
-    }
+function callChatbotApi(message, sessionState) {
+  console.log(sessionState)
+  // params, body, additionalParams
+  return sdk.chatbotPost({}, {
+    messages: [{
+      type: 'unstructured',
+      unstructured: {
+        text: message
+      }
+    }],
+    sessionId: String(sessionId),
+    sessionState: sessionState
+  }, {});
+}
+
+$('.message-submit').click(function() {
+  insertMessage();
+});
+
+$(window).on('keydown', function(e) {
+  if (e.which == 13) {
+    insertMessage();
+    return false;
   }
+})
 
-  function callChatbotApi(message, sessionState) {
-    console.log(sessionState)
-    // params, body, additionalParams
-    return sdk.chatbotPost({}, {
-      messages: [{
-        type: 'unstructured',
-        unstructured: {
-          text: message
-        }
-      }],
-      sessionId: String(sessionId),
-      sessionState: sessionState
-    }, {});
-  }
+function insertResponseMessage(content) {
+  $('<div class="message loading new"><figure class="avatar"><img src="https://media.tenor.com/images/4c347ea7198af12fd0a66790515f958f/tenor.gif" /></figure><span></span></div>').appendTo($('.mCSB_container'));
+  updateScrollbar();
 
-  function insertMessage() {
+  setTimeout(function() {
+    $('.message.loading').remove();
+    $('<div class="message new"><figure class="avatar"><img src="https://media.tenor.com/images/4c347ea7198af12fd0a66790515f958f/tenor.gif" /></figure>' + content + '</div>').appendTo($('.mCSB_container')).addClass('new');
+    setDate();
+    updateScrollbar();
+    i++;
+  }, 500);
+}
+
+function insertMessage(msg=null) {
+  if (msg === null){
     // Capture user input
     msg = $('.message-input').val();
     if ($.trim(msg) == '') {
@@ -58,14 +82,15 @@ $(document).ready(function() {
     // Clean user input butter
     $('.message-input').val(null);
     updateScrollbar();
+  }
 
-    // Call ChatBotApi
-    callChatbotApi(msg, sessionState)
+  // Call ChatBotApi
+  callChatbotApi(msg, sessionState)
       .then((response) => {
         console.log(response);
         let data = response.data;
-        sessionState = data.sessionState
-        requestAttributes = data.requestAttributes
+        sessionState = data.sessionState;
+        requestAttributes = data.requestAttributes;
 
         if (data.messages && data.messages.length > 0) {
           console.log('received ' + data.messages.length + ' messages');
@@ -82,11 +107,13 @@ $(document).ready(function() {
               let html = '';
 
               setTimeout(function() {
-                html = '<div class="card"><img src="' + message.unstructured.text.imageUrl + '"gitclass="card-thumbnail" />'
+                html = '<div class="card"><img src="' + message.unstructured.text.imageUrl + '"class="card-thumbnail" style="margin: 0 auto"/>'
                     + '<h2 class="card-title">' + message.unstructured.text.title + '</h2>'
-                    + '<p class="card-text">' + message.unstructured.text.subtitle + '</p></div>'
-                // + '<a href="#" onclick="' + message.structured.payload.clickAction + '()">' + message.structured.payload.buttonLabel + '</a>'
-                ;
+                    + '<p class="card-text">' + message.unstructured.text.subtitle + '</p>';
+                for (let button of message.unstructured.text.buttons) {
+                  html += '<button onclick="insertMessage(\'' + button.value + '\')">' + button.text + '</button>'
+                }
+                html += '</div>';
                 insertResponseMessage(html);
               }, 1100);
             } else {
@@ -101,30 +128,38 @@ $(document).ready(function() {
         console.log('an error occurred', error);
         insertResponseMessage('Oops, something went wrong. Please try again.');
       });
-  }
 
-  $('.message-submit').click(function() {
-    insertMessage();
-  });
-
-  $(window).on('keydown', function(e) {
-    if (e.which == 13) {
-      insertMessage();
-      return false;
+  // if contains request attributes: it means one of two fulfillment of intents
+  if(requestAttributes !== null) {
+    // decode json string
+    for(const key in requestAttributes){
+      requestAttributes[key] = JSON.parse(requestAttributes[key])
     }
-  })
 
-  function insertResponseMessage(content) {
-    $('<div class="message loading new"><figure class="avatar"><img src="https://media.tenor.com/images/4c347ea7198af12fd0a66790515f958f/tenor.gif" /></figure><span></span></div>').appendTo($('.mCSB_container'));
-    updateScrollbar();
+    // multiple restaurants choice card
+    if(requestAttributes.hasOwnProperty("businesses")) {
+      let html = '';
+      html += '<section id="gallery"><div class="container"><div class="row">'
 
-    setTimeout(function() {
-      $('.message.loading').remove();
-      $('<div class="message new"><figure class="avatar"><img src="https://media.tenor.com/images/4c347ea7198af12fd0a66790515f958f/tenor.gif" /></figure>' + content + '</div>').appendTo($('.mCSB_container')).addClass('new');
-      setDate();
-      updateScrollbar();
-      i++;
-    }, 500);
+      for(let business of requestAttributes.businesses) {
+        html += '<div class="col-lg-4 mb-4"><div class="card"><img class="card-img-top" src="' + business.image_url + '">'
+        html += '<div class="card-body"><h5 class="card-title">' + business.name + '</h5>'
+        html += '<h6 class="card-category">'
+        for(let category of business.categories) {
+          html += category.title + ', '
+        }
+        html += '</h6>'
+        html += '<p>' + 'Rating:' + business.rating + '/5 (' + business.review_count + ' reviews)</p>'
+        html += '<p>' + 'Location:' + business.location.display_address.join() + '</p>'
+        html += '<p>' + 'Distance:' + (business.distance / 1609).toFixed(2) + ' miles</p>'
+        html += '<button style="display: block;margin:0 auto" onclick="insertMessage(\'' + business.id + '\')">View more</button>'
+        html += '</div></div></div>'
+      }
+
+      html += '</div></div></section>'
+      html += '<section class="more-button"><button style="display: block;margin:0 auto" onclick="insertMessage(\'' + 'no' + '\')">More Restaurants</button></section>'
+
+      insertResponseMessage(html)
+    }
   }
-
-});
+}
