@@ -171,6 +171,7 @@ function insertMessage(msg=null) {
             html += '<p>' + 'Distance: ' + (business.distance / 1609).toFixed(2) + ' miles</p>'
             html += '<p>' + 'Phone: ' + business.display_phone + '</p>'
             html += '<p class="profile-photos">' + 'Photos: '
+            html += '<br>'
             for(let photo of business.photos) {
               html += '<img class="profile-photo" src="' + photo + '">'
             }

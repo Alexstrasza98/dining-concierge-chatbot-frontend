@@ -14,9 +14,17 @@ Body
 Chat
 --------------------*/
 .chat {
-  width: 100%;
-  height: 60vh;
-  max-height: 400px;
+  width: 1500px;
+  height: 550px;
+  position: absolute;
+  left: 30px;
+  bottom: 100px;
+  top:100px;
+  border:solid;
+  border-style: solid;
+  border-radius: 5mm;
+  border-width: 0.8mm;
+  color:#999;
   z-index: 2;
   overflow: hidden;
   display: -webkit-box;
@@ -290,6 +298,27 @@ Message Box
 
 .card h4,p {
   text-align: left;
+}
+
+.profile-photo {
+  width: 200px;
+  height: 200px;
+}
+
+.profile-img-top {
+  width: 500px;
+  height: 300px;
+}
+
+.card-img-top {
+  width: 300px;
+  height: 300px;
+}
+
+.masthead-brand {
+  text-align: center;
+  position:absolute;
+  left: 180px;
 }
 /*--------------------
 Custom Srollbar
