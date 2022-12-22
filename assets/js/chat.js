@@ -29,7 +29,6 @@ function setDate() {
 }
 
 function callChatbotApi(message, sessionState) {
-  console.log(sessionState)
   // params, body, additionalParams
   return sdk.chatbotPost({}, {
     messages: [{
@@ -123,43 +122,86 @@ function insertMessage(msg=null) {
         } else {
           insertResponseMessage('Oops, something went wrong. Please try again.');
         }
+
+        // if contains request attributes: it means one of two fulfillment of intents
+        if(requestAttributes !== null) {
+          // decode json string
+          for(const key in requestAttributes){
+            requestAttributes[key] = JSON.parse(requestAttributes[key])
+          }
+
+          // multiple restaurants choice card
+          if(requestAttributes.hasOwnProperty("businesses")) {
+            let html = ''
+            html += '<section id="gallery"><div class="container"><div class="row">'
+
+            for(let business of requestAttributes.businesses) {
+              html += '<div class="col-lg-4 mb-4"><div class="card"><img class="card-img-top" src="' + business.image_url + '">'
+              html += '<div class="card-body"><h5 class="card-title">' + business.name + '</h5>'
+              html += '<h6 class="card-category">'
+              for(let category of business.categories) {
+                html += category.title + ', '
+              }
+              html += '</h6>'
+              html += '<p>' + 'Rating: ' + business.rating + '/5 (' + business.review_count + ' reviews)</p>'
+              html += '<p>' + 'Location: ' + business.location.display_address.join() + '</p>'
+              html += '<p>' + 'Distance: ' + (business.distance / 1609).toFixed(2) + ' miles</p>'
+              html += '<button style="display: block;margin:0 auto" onclick="insertMessage(\'' + business.alias + '\')">View more</button>'
+              html += '</div></div></div>'
+            }
+
+            html += '</div></div></section>'
+            html += '<section class="more-button"><button style="display: block;margin:0 auto" onclick="insertMessage(\'' + 'no' + '\')">More Restaurants</button></section>'
+
+            insertResponseMessage(html)
+
+          } else if(requestAttributes.hasOwnProperty("business_info")) { // single restaurant response card
+            let business = requestAttributes.business_info
+            let html = ''
+            html += '<section id="restaurant_profile"><div class="container">'
+            html += '<div class="profile"><img class="profile-img-top" src="' + business.image_url + '">'
+            html += '<div class="card-body"><h3 class="card-title">' + business.name + '</h3>'
+            html += '<h4 class="card-category">'
+            for(let category of business.categories) {
+              html += category.title + ', '
+            }
+            html += '</h4>'
+            html += '<p>' + 'Rating: ' + business.rating + '/5 (' + business.review_count + ' reviews)</p>'
+            html += '<p>' + 'Location: ' + business.location.display_address.join() + '</p>'
+            html += '<p>' + 'Distance: ' + (business.distance / 1609).toFixed(2) + ' miles</p>'
+            html += '<p>' + 'Phone: ' + business.display_phone + '</p>'
+            html += '<p class="profile-photos">' + 'Photos: '
+            for(let photo of business.photos) {
+              html += '<img class="profile-photo" src="' + photo + '">'
+            }
+            html += '</p>'
+            html += '<button onclick="' + business.url + '">View on Yelp</button>'
+            if (business.hasOwnProperty("messaging")) {
+              for(let messaging of business.messaging) {
+                html += '<button onclick="' + messaging.url + '">' + messaging.use_case_text + '</button>'
+              }
+            }
+
+            html += '<div>Reviews: '
+            for(let review of requestAttributes.reviews_info.reviews) {
+              html += '<p>' + review.text + '</p>'
+            }
+            html += '</div>'
+
+            html += '</div></div></section>'
+
+            html += '<button style="display: block;margin:0 auto" onclick="insertMessage(\'' + 'yes'+ '\')">This is the one!</button>'
+            html += '<button style="display: block;margin:0 auto" onclick="insertMessage(\'' + 'no'+ '\')">I don\'t like this one.</button>'
+
+            insertResponseMessage(html)
+          }
+        }
+
       })
       .catch((error) => {
         console.log('an error occurred', error);
         insertResponseMessage('Oops, something went wrong. Please try again.');
       });
 
-  // if contains request attributes: it means one of two fulfillment of intents
-  if(requestAttributes !== null) {
-    // decode json string
-    for(const key in requestAttributes){
-      requestAttributes[key] = JSON.parse(requestAttributes[key])
-    }
 
-    // multiple restaurants choice card
-    if(requestAttributes.hasOwnProperty("businesses")) {
-      let html = '';
-      html += '<section id="gallery"><div class="container"><div class="row">'
-
-      for(let business of requestAttributes.businesses) {
-        html += '<div class="col-lg-4 mb-4"><div class="card"><img class="card-img-top" src="' + business.image_url + '">'
-        html += '<div class="card-body"><h5 class="card-title">' + business.name + '</h5>'
-        html += '<h6 class="card-category">'
-        for(let category of business.categories) {
-          html += category.title + ', '
-        }
-        html += '</h6>'
-        html += '<p>' + 'Rating:' + business.rating + '/5 (' + business.review_count + ' reviews)</p>'
-        html += '<p>' + 'Location:' + business.location.display_address.join() + '</p>'
-        html += '<p>' + 'Distance:' + (business.distance / 1609).toFixed(2) + ' miles</p>'
-        html += '<button style="display: block;margin:0 auto" onclick="insertMessage(\'' + business.id + '\')">View more</button>'
-        html += '</div></div></div>'
-      }
-
-      html += '</div></div></section>'
-      html += '<section class="more-button"><button style="display: block;margin:0 auto" onclick="insertMessage(\'' + 'no' + '\')">More Restaurants</button></section>'
-
-      insertResponseMessage(html)
-    }
-  }
 }
