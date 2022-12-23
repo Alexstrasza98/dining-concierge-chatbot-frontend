@@ -106,7 +106,7 @@ function insertMessage(msg=null) {
               let html = '';
 
               setTimeout(function() {
-                html = '<div class="card"><img src="' + message.unstructured.text.imageUrl + '"class="card-thumbnail" style="margin: 0 auto"/>'
+                html = '<div class="card1"><img src="' + message.unstructured.text.imageUrl + '"class="card-thumbnail" style="margin: 0 auto"/>'
                     + '<h2 class="card-title">' + message.unstructured.text.title + '</h2>'
                     + '<p class="card-text">' + message.unstructured.text.subtitle + '</p>';
                 for (let button of message.unstructured.text.buttons) {
