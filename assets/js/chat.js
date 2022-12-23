@@ -124,7 +124,7 @@ function insertMessage(msg=null) {
         }
 
         // if contains request attributes: it means one of two fulfillment of intents
-        if(requestAttributes !== null) {
+        if(requestAttributes !== null && requestAttributes !== undefined) {
           // decode json string
           for(const key in requestAttributes){
             requestAttributes[key] = JSON.parse(requestAttributes[key])
@@ -176,18 +176,14 @@ function insertMessage(msg=null) {
               html += '<img class="profile-photo" src="' + photo + '">'
             }
             html += '</p>'
-            html += '<button onclick="' + business.url + '">View on Yelp</button>'
-            if (business.hasOwnProperty("messaging")) {
-              for(let messaging of business.messaging) {
-                html += '<button onclick="' + messaging.url + '">' + messaging.use_case_text + '</button>'
-              }
-            }
 
             html += '<div>Reviews: '
             for(let review of requestAttributes.reviews_info.reviews) {
               html += '<p>' + review.text + '</p>'
             }
             html += '</div>'
+
+            html += '<button onclick="' + business.url + '">View on Yelp</button>'
 
             html += '</div></div></section>'
 
