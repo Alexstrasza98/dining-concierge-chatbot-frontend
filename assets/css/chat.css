@@ -320,6 +320,22 @@ Message Box
   position:absolute;
   left: 180px;
 }
+
+.user {
+  position: absolute;
+  text-align: center;
+  right: 0px;
+  top: 40px;
+  font-size: x-large;
+}
+
+.user-button {
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+  color: #3498db;
+}
+
 /*--------------------
 Custom Srollbar
 --------------------*/
